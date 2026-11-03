@@ -4,8 +4,23 @@ const stageLabel=document.querySelector('.stage-label');
 const toast=document.getElementById('toast');
 const confetti=document.getElementById('confetti');
 let toastTimer;
+const runawayHomes=new WeakMap();
+
+function resetRunawayButtons(){
+  document.querySelectorAll('.button-no').forEach(button=>{
+    const home=runawayHomes.get(button);
+    if(!home)return;
+    home.parent.insertBefore(button,home.next);
+    button.removeAttribute('style');
+    delete button.dataset.hopX;
+    delete button.dataset.hopY;
+    delete button.dataset.hopCount;
+    runawayHomes.delete(button);
+  });
+}
 
 function showStage(index){
+  resetRunawayButtons();
   stages.forEach((stage,i)=>{stage.hidden=i!==index;stage.classList.toggle('is-active',i===index)});
   dots.forEach((dot,i)=>dot.classList.toggle('is-current',i===Math.min(index,1)));
   stageLabel.textContent=index===0?'маленький секрет · 01 / 02':index===1?'ещё один вопрос · 02 / 02':'счастливая глава · ♥';
@@ -32,29 +47,25 @@ function celebrate(){
 
 function runAway(button){
   const rect=button.getBoundingClientRect();
-  const area=button.closest('.actions').getBoundingClientRect();
-  const yesRect=button.parentElement.querySelector('.button-yes').getBoundingClientRect();
-  const oldX=Number(button.dataset.hopX||0);
-  const oldY=Number(button.dataset.hopY||0);
-  const baseLeft=rect.left-oldX;
-  const baseTop=rect.top-oldY;
-  let minX=Math.max(-72,area.left+4-baseLeft,yesRect.right+8-baseLeft);
-  let maxX=Math.min(72,area.right-rect.width-4-baseLeft);
-  if(minX>maxX)minX=maxX=oldX;
-  const minY=Math.max(-30,area.top+3-baseTop);
-  const maxY=Math.min(30,area.bottom-rect.height-3-baseTop);
-  const hop=Number(button.dataset.hopCount||0)+1;
-  const x=hop%2===1?minX:maxX;
-  const y=hop%2===1?maxY:minY;
-  button.dataset.hopX=String(x);
-  button.dataset.hopY=String(y);
-  button.dataset.hopCount=String(hop);
-  button.style.position='relative';
+  if(!runawayHomes.has(button))runawayHomes.set(button,{parent:button.parentElement,next:button.nextSibling});
+  document.body.appendChild(button);
+  const pad=16;
+  const maxX=Math.max(pad,window.innerWidth-rect.width-pad);
+  const maxY=Math.max(pad,window.innerHeight-rect.height-pad);
+  let x=pad+Math.random()*(maxX-pad);
+  let y=pad+Math.random()*(maxY-pad);
+  let tries=0;
+  while(Math.hypot(x-rect.left,y-rect.top)<Math.max(rect.width,70)&&tries<12){
+    x=pad+Math.random()*(maxX-pad);
+    y=pad+Math.random()*(maxY-pad);
+    tries++;
+  }
+  button.style.position='fixed';
   button.style.left=`${x}px`;
   button.style.top=`${y}px`;
-  button.style.zIndex='2';
+  button.style.zIndex='11';
   button.style.transition='left .2s ease, top .2s ease, transform .2s ease';
-  button.style.transform=hop%2===1?'rotate(-5deg)':'rotate(5deg)';
+  button.style.transform=`rotate(${Math.random()*12-6}deg)`;
   toast.classList.add('is-visible');
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),1050);
@@ -68,3 +79,4 @@ for(const button of document.querySelectorAll('.button-no')){
   button.addEventListener('pointerdown',event=>{event.preventDefault();runAway(button)});
   button.addEventListener('click',event=>{event.preventDefault();runAway(button)});
 }
+
