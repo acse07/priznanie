@@ -4,7 +4,6 @@
 
 ## Настройка GitHub Pages
 
-Workflow `.github/workflows/deploy.yml` включает GitHub Pages и публикует сайт после push в `main`.
+Для первой публикации открой **Settings → Pages**, выбери **GitHub Actions** в разделе Build and deployment и сохрани. Затем workflow `.github/workflows/deploy.yml` опубликует сайт после push в `main`.
 
 Текст сейчас написан без имени, чтобы признание звучало естественно. Имя можно добавить в заголовок и письмо прямо в `index.html`.
-
