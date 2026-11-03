@@ -32,21 +32,29 @@ function celebrate(){
 
 function runAway(button){
   const rect=button.getBoundingClientRect();
-  const pad=12;
-  const maxX=Math.max(pad,window.innerWidth-rect.width-pad);
-  const maxY=Math.max(pad,window.innerHeight-rect.height-pad);
-  let x=pad+Math.random()*(maxX-pad);
-  let y=pad+Math.random()*(maxY-pad);
-  if(Math.abs(x-rect.left)<rect.width*1.5&&Math.abs(y-rect.top)<rect.height*1.5){
-    x=rect.left>window.innerWidth/2?pad:maxX;
-    y=rect.top>window.innerHeight/2?pad:maxY;
-  }
-  button.style.position='fixed';
+  const area=button.closest('.actions').getBoundingClientRect();
+  const yesRect=button.parentElement.querySelector('.button-yes').getBoundingClientRect();
+  const oldX=Number(button.dataset.hopX||0);
+  const oldY=Number(button.dataset.hopY||0);
+  const baseLeft=rect.left-oldX;
+  const baseTop=rect.top-oldY;
+  let minX=Math.max(-72,area.left+4-baseLeft,yesRect.right+8-baseLeft);
+  let maxX=Math.min(72,area.right-rect.width-4-baseLeft);
+  if(minX>maxX)minX=maxX=oldX;
+  const minY=Math.max(-30,area.top+3-baseTop);
+  const maxY=Math.min(30,area.bottom-rect.height-3-baseTop);
+  const hop=Number(button.dataset.hopCount||0)+1;
+  const x=hop%2===1?minX:maxX;
+  const y=hop%2===1?maxY:minY;
+  button.dataset.hopX=String(x);
+  button.dataset.hopY=String(y);
+  button.dataset.hopCount=String(hop);
+  button.style.position='relative';
   button.style.left=`${x}px`;
   button.style.top=`${y}px`;
-  button.style.zIndex='11';
+  button.style.zIndex='2';
   button.style.transition='left .2s ease, top .2s ease, transform .2s ease';
-  button.style.transform='rotate(-7deg) scale(.96)';
+  button.style.transform=hop%2===1?'rotate(-5deg)':'rotate(5deg)';
   toast.classList.add('is-visible');
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>toast.classList.remove('is-visible'),1050);
